@@ -71,9 +71,17 @@ var SliceCaseStatusCheckOK = []TestCases{
 			Body:       `["Мир кофе", "Сладкоежка", "Кофе и завтраки", "Сытый студент"]`,
 		},
 	},
+	{
+		Name: "test_7",
+		URL:  "http://localhost:8080/cafe",
+		ExpectedResponse: ExpectedResponse{
+			StatusCode: http.StatusBadRequest,
+			Body:       `error: empty GET param`,
+		},
+	},
 }
 
-// Тест на верные запросы
+// Тест на верные запросы и отсутствие GET параметров
 func TestMainHandleStatusCheck(t *testing.T) {
 	for _, testCase := range SliceCaseStatusCheckOK {
 		req := httptest.NewRequest(

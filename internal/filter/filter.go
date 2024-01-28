@@ -17,6 +17,10 @@ type Filter struct {
 // New возвращает экзмепляр структуры Filter на основе GET запроса
 func New(req *http.Request) (*Filter, error) {
 	var filter Filter // экземпляр фильтра
+	// Проверка на отсутствие GET параметров
+	if len(req.URL.Query()) == 0 {
+		return nil, fmt.Errorf("empty GET param")
+	}
 	// Значение города из запроса
 	city := req.URL.Query().Get("city")
 	// Проверка на невведенный параметр
