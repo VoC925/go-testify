@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/VoC925/go-testify/internal"
+	"github.com/VoC925/go-testify/internal/api/middleware"
 	"github.com/VoC925/go-testify/internal/handlers"
 	"github.com/VoC925/go-testify/pkg/logging"
 	"github.com/go-chi/chi/v5"
@@ -27,7 +28,7 @@ func NewHandlerUser(service Service, logger *logging.Logger) handlers.Handler {
 }
 
 func (h *HandlerUser) Register(route *chi.Mux) {
-	route.Get("/user/{login}", h.GetUser)
+	route.Get("/user/{login}", middleware.Auth(h.GetUser))
 	route.Get("/users", h.GetAllUsers)
 	route.Post("/user", h.AddUser)
 	route.Post("/user/update/{login}/{newLogin}", h.UpdateLoginUser)

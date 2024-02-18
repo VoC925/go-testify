@@ -17,7 +17,7 @@ type UserDTO struct {
 /*
 {
 	"name": "Alex",
-	"login": "Alex23"
+	"login": "Alex23",
 	"password": "pass23"
 }
 */
