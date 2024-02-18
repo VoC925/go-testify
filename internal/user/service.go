@@ -13,8 +13,10 @@ import (
 // интерфейс сервиса
 type Service interface {
 	RegisterNewUser(*UserDTO) (int, error) // Зарегистрировать нового пользователя
-	ChangeLogin(*UserDTO, string) error    // Обновить данные пользователя
-	DeleteUser(*UserDTO) error             // Удалить пользователя
+	ChangeLogin(string, string) error      // Обновить данные пользователя
+	DeleteUser(string) error               // Удалить пользователя
+	GetUserByLogin(string) (*User, error)  // Получить пользователя по логину
+	GetAllUsers() ([]*User, error)         // Получить всех пользователей
 }
 
 // Конструктор
@@ -60,31 +62,58 @@ func (u *UserService) RegisterNewUser(userDTO *UserDTO) (int, error) {
 }
 
 // изменение данных пользователя
-func (u *UserService) ChangeLogin(userDTO *UserDTO, newLogin string) error {
+func (u *UserService) ChangeLogin(login string, newLogin string) error {
 	// проверка на существование пользователя с таким же логином
-	_, err := u.db.GetByLogin(userDTO.Login)
+	_, err := u.db.GetByLogin(login)
 	if errors.Is(err, internal.ErrNotExistUser) {
 		return fmt.Errorf("%s: %s", internal.ErrUpdateLogin, err)
 	}
-	err = u.db.UpdateLogin(userDTO.Login, newLogin)
+	// изменение логина
+	err = u.db.UpdateLogin(login, newLogin)
 	if err != nil {
 		return fmt.Errorf("%s: %s", internal.ErrUpdateLogin, err)
 	}
-	u.logger.Infof("login changed successfully, before: %s ; now: %s", userDTO.Login, newLogin)
+	// изменение времени последних изменений
+	err = u.db.UpdateTime(newLogin)
+	if err != nil {
+		return fmt.Errorf("%s: %s", internal.ErrUpdateLogin, err)
+	}
+	u.logger.Infof("login changed successfully, before: %s ; now: %s", login, newLogin)
 	return nil
 }
 
 // удаление пользователя
-func (u *UserService) DeleteUser(userDTO *UserDTO) error {
+func (u *UserService) DeleteUser(login string) error {
 	// проверка на существование пользователя с таким же логином
-	_, err := u.db.GetByLogin(userDTO.Login)
+	_, err := u.db.GetByLogin(login)
 	if errors.Is(err, internal.ErrNotExistUser) {
 		return fmt.Errorf("%s: %s", internal.ErrDelete, err)
 	}
-	err = u.db.Delete(userDTO.Login)
+	err = u.db.Delete(login)
 	if err != nil {
 		return fmt.Errorf("%s: %s", internal.ErrDelete, err)
 	}
-	u.logger.Infof("user with login: %s deleted successfully", userDTO.Login)
+	u.logger.Infof("user with login: %s deleted successfully", login)
 	return nil
+}
+
+// извлчение пользователя
+func (u *UserService) GetUserByLogin(login string) (*User, error) {
+	// проверка на существование пользователя с таким же логином
+	userObj, err := u.db.GetByLogin(login)
+	if errors.Is(err, internal.ErrNotExistUser) {
+		return nil, fmt.Errorf("%s: %s", internal.ErrGetUser, err)
+	}
+	return userObj, nil
+}
+
+func (u *UserService) GetAllUsers() ([]*User, error) {
+	users, err := u.db.GetAllUsers()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %s", internal.ErrGetUser, err)
+	}
+	if users == nil {
+		return nil, fmt.Errorf("%s: %s", internal.ErrGetUser, internal.ErrEmptyList)
+	}
+	return users, nil
 }

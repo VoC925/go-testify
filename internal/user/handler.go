@@ -27,10 +27,122 @@ func NewHandlerUser(service Service, logger *logging.Logger) handlers.Handler {
 }
 
 func (h *HandlerUser) Register(route *chi.Mux) {
+	route.Get("/user/{login}", h.GetUser)
+	route.Get("/users", h.GetAllUsers)
 	route.Post("/user", h.AddUser)
+	route.Post("/user/update/{login}/{newLogin}", h.UpdateLoginUser)
+	route.Delete("/user/delete/{login}", h.DeleteUser)
 }
 
-// mainHandle GET обработчик по эндпоинту "cafe/"
+// GetAllUsers обработчик по эндпоинту "users/"
+func (h *HandlerUser) GetAllUsers(w http.ResponseWriter, req *http.Request) {
+	var errStr string
+	// сервис
+	users, err := h.service.GetAllUsers()
+	if err != nil {
+		errStr = fmt.Sprintf("%s: %s",
+			internal.ErrHandlerGetAllUsers,
+			err)
+		h.logger.Error(errStr)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(errStr))
+		return
+	}
+	jsonData, err := json.Marshal(users)
+	if err != nil {
+		errStr = fmt.Sprintf("%s: %s: %s",
+			internal.ErrHandlerGetUser,
+			internal.ErrMarshal,
+			err)
+		h.logger.Error(errStr)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(errStr))
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonData)
+}
+
+// GetUser обработчик по эндпоинту "users/"
+func (h *HandlerUser) GetUser(w http.ResponseWriter, req *http.Request) {
+	// параметр из request
+	var errStr string
+	login := chi.URLParam(req, "login")
+	if login == "" {
+		errStr = fmt.Sprintf("%s: %s",
+			internal.ErrHandlerGetUser,
+			internal.ErrEmptyGetParam)
+		h.logger.Error(errStr)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(errStr))
+		return
+	}
+	// сервис
+	userObj, err := h.service.GetUserByLogin(login)
+	if err != nil {
+		errStr = fmt.Sprintf("%s: %s",
+			internal.ErrHandlerGetUser,
+			err)
+		h.logger.Error(errStr)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(errStr))
+		return
+	}
+	jsonData, err := json.Marshal(userObj)
+	if err != nil {
+		errStr = fmt.Sprintf("%s: %s: %s",
+			internal.ErrHandlerGetUser,
+			internal.ErrMarshal,
+			err)
+		h.logger.Error(errStr)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(errStr))
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonData)
+}
+
+// DeleteUser обработчик по эндпоинту "users/"
+func (h *HandlerUser) DeleteUser(w http.ResponseWriter, req *http.Request) {
+	// параметр из request
+	var errStr string
+	deleteLogin := chi.URLParam(req, "login")
+	if deleteLogin == "" {
+		errStr = fmt.Sprintf("%s: %s",
+			internal.ErrHandlerDeleteUser,
+			internal.ErrEmptyGetParam)
+		h.logger.Error(errStr)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(errStr))
+		return
+	}
+	// сервис
+	err := h.service.DeleteUser(deleteLogin)
+	if err != nil {
+		errStr = fmt.Sprintf("%s: %s",
+			internal.ErrHandlerDeleteUser,
+			err)
+		h.logger.Error(errStr)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(errStr))
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Пользователь удален"))
+}
+
+// AddUser POST обработчик по эндпоинту "users/"
 func (h *HandlerUser) AddUser(w http.ResponseWriter, req *http.Request) {
 	var (
 		buf    bytes.Buffer
@@ -89,4 +201,39 @@ func (h *HandlerUser) AddUser(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Пользователь добавлен"))
+}
+
+// DeleteUser обработчик по эндпоинту "users/"
+func (h *HandlerUser) UpdateLoginUser(w http.ResponseWriter, req *http.Request) {
+
+	var errStr string
+	// параметр из request
+	login := chi.URLParam(req, "login")
+	newLogin := chi.URLParam(req, "newLogin")
+
+	if login == "" || newLogin == "" {
+		errStr = fmt.Sprintf("%s: %s",
+			internal.ErrHandlerUpdateLoginUser,
+			internal.ErrEmptyGetParam)
+		h.logger.Error(errStr)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(errStr))
+		return
+	}
+	// сервис
+	err := h.service.ChangeLogin(login, newLogin)
+	if err != nil {
+		errStr = fmt.Sprintf("%s: %s",
+			internal.ErrHandlerUpdateLoginUser,
+			err)
+		h.logger.Error(errStr)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(errStr))
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Логин изменен"))
 }

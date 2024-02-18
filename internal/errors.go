@@ -20,11 +20,19 @@ var (
 	ErrDelete      = errors.New("can't delete user")
 	ErrAddUser     = errors.New("can't add user")
 	ErrUpdateLogin = errors.New("can't change login")
+	ErrGetUser     = errors.New("can't get user")
+	ErrEmptyList   = errors.New("list of users are empty")
 	// ошибки хендлеров
-	ErrHandlerAddUser = errors.New("handler add user error")
-	ErrReadBodyReq    = errors.New("read request body")
-	ErrUnMarshal      = errors.New("read request body")
-	ErrEmptyBodyReq   = errors.New("empty request body")
+	ErrHandlerGetUser         = errors.New("handler get user error")
+	ErrHandlerGetAllUsers     = errors.New("handler get users error")
+	ErrHandlerAddUser         = errors.New("handler add user error")
+	ErrHandlerDeleteUser      = errors.New("handler delete user error")
+	ErrHandlerUpdateLoginUser = errors.New("handler update login user error")
+	ErrReadBodyReq            = errors.New("read request body")
+	ErrUnMarshal              = errors.New("unmarshal")
+	ErrMarshal                = errors.New("marshal")
+	ErrEmptyBodyReq           = errors.New("empty request body")
+	ErrEmptyGetParam          = errors.New("empty GET parametrs request")
 )
 
 // структура ошибки

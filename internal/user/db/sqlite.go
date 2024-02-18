@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/VoC925/go-testify/internal"
 	"github.com/VoC925/go-testify/internal/user"
@@ -65,8 +66,33 @@ FROM users WHERE login=:loginVal`
 
 // Извлечение всех логинов
 func (u *UserStore) GetAllUsers() ([]*user.User, error) {
-	//
-	return nil, nil
+	q := `SELECT name, login, password_hash, created_at, change_at
+FROM users`
+	rows, err := u.db.Query(q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []*user.User
+
+	for rows.Next() {
+		u := new(user.User)
+		err = rows.Scan(
+			&u.Name,
+			&u.Login,
+			&u.PasswordHash,
+			&u.CreatedAt,
+			&u.LastChangedAt)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, u)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return users, nil
 }
 
 // Удаление пользователя по логину
@@ -83,6 +109,16 @@ func (u *UserStore) UpdateLogin(login string, newLogin string) error {
 	q := `UPDATE users SET login=:newLoginVal WHERE login=:loginVal`
 	if _, err := u.db.Exec(q,
 		sql.Named("newLoginVal", newLogin),
+		sql.Named("loginVal", login)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *UserStore) UpdateTime(login string) error {
+	q := `UPDATE users SET change_at=:newTime WHERE login=:loginVal`
+	if _, err := u.db.Exec(q,
+		sql.Named("newTime", time.Now().Format(time.DateTime)),
 		sql.Named("loginVal", login)); err != nil {
 		return err
 	}

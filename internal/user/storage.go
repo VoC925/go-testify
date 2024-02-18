@@ -7,4 +7,5 @@ type Storage interface {
 	GetAllUsers() ([]*User, error)    // Получить всех пользователей
 	Delete(string) error              // Удалить пользователя
 	UpdateLogin(string, string) error // Изменить логин
+	UpdateTime(string) error          // Обновить время изменений
 }
