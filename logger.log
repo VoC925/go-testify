@@ -1,0 +1,6 @@
+time="2024-02-18 15:55:01" level=error msg="handler update login user error: can't change login: user doesn't exist"
+time="2024-02-18 15:55:14" level=info msg="login changed successfully, before: testTime ; now: test"
+time="2024-02-18 16:01:51" level=error msg="handler update login user error: can't change login: user doesn't exist"
+time="2024-02-18 16:02:14" level=error msg="handler update login user error: can't change login: SQL logic error: no such column: changed_at (1)"
+time="2024-02-18 16:03:54" level=info msg="login changed successfully, before: again ; now: final"
+time="2024-02-18 16:34:19" level=error msg="handler get user error: can't get user: user doesn't exist"
